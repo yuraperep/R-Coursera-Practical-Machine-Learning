@@ -41,19 +41,19 @@ cm <- confusionMatrix(testing$classe,predicted)
 ```
 Decision tree quite small and accuracy is poor when we use default options. 
 We set __*tuneLength*__ param to bigger value to use the power of decision tree algorithm.
-Obtained accuracy is `r cm$overall[1]*100`% that is very good, so this model is good candidate for final prediction. Expected out of sample error is `r (1-cm$overall[1])*100` %
+Obtained accuracy is `r cm$overall[1]` that is very good, so this model is good candidate for final prediction. Expected out of sample error is `r (1-cm$overall[1])` 
 
 ### Random forest model 
 
 ```{r}
-#controlRF <- trainControl(method = "cv", number = 5, allowParallel = TRUE)
-#modelRF <- train(classe ~ ., data = training[,2:60], method = "rf", trControl = controlRF)
-#predictedRF <- predict(modelRF,newdata=testing)
-#cmRF <- confusionMatrix(testing$classe,predictedRF)
-#print(modelRF$finalModel)
+controlRF <- trainControl(method = "cv", number = 5, allowParallel = TRUE)
+modelRF <- train(classe ~ ., data = training[,2:60], method = "rf", trControl = controlRF)
+predictedRF <- predict(modelRF,newdata=testing)
+cmRF <- confusionMatrix(testing$classe,predictedRF)
+print(modelRF$finalModel)
 ```
-We use 5-fold crossvalidation that give us 80% training set and 20% testing set.
-Random forest show accuracy `r cm$overall[1]*100`, expected out of sample error is `r (1-cm$overall[1])*100` % 
+We use 5-fold cross-validation that give us 80% training set and 20% testing set.
+Random forest show accuracy `r cmRF$overall[1]`, expected out of sample error is `r (1-cmRF$overall[1])`  
 
 ### Test set prediction 
 
@@ -61,10 +61,10 @@ Let's use both models to find out class from test dataset:
 ```{r}
 predictedSubmit <- predict(model,newdata=sportSubmitTest)
 predictedSubmit
-#predictedSubmitRF <- predict(modelRF,newdata=sportSubmitTest)
-#predictedSubmitRF
+predictedSubmitRF <- predict(modelRF,newdata=sportSubmitTest)
+predictedSubmitRF
 ```
-As we could see, both models give same results to us, what is not wonder taking into account huge accuracy of models. 
+As we could see, both models give same results to us, what is not wonder taking into account huge accuracy of models. Such accuracy mean that only rare corner-cases and outliers are hard to predict correctly.
 
 ### Submisssion results export 
 
@@ -78,7 +78,7 @@ pml_write_files = function(x){
     write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
   }
 }
-pml_write_files(predictedSubmit)
+pml_write_files(predictedSubmitRF)
 ```
 
 

@@ -93,16 +93,34 @@ testing &lt;- sportTrain[-indexesTrain,]</code></pre>
 <pre><code>## Loading required package: rpart</code></pre>
 <pre class="r"><code>predicted &lt;- predict(model,newdata=testing)
 cm &lt;- confusionMatrix(testing$classe,predicted)</code></pre>
-<p>Decision tree quite small and accuracy is poor when we use default options. We set <strong><em>tuneLength</em></strong> param to bigger value to use the power of decision tree algorithm. Obtained accuracy is 98.9551478% that is very good, so this model is good candidate for final prediction. Expected out of sample error is 1.0448522 %</p>
+<p>Decision tree quite small and accuracy is poor when we use default options. We set <strong><em>tuneLength</em></strong> param to bigger value to use the power of decision tree algorithm. Obtained accuracy is 0.9895515 that is very good, so this model is good candidate for final prediction. Expected out of sample error is 0.0104485</p>
 </div>
 <div id="random-forest-model" class="section level3">
 <h3>Random forest model</h3>
-<pre class="r"><code>#controlRF &lt;- trainControl(method = &quot;cv&quot;, number = 5, allowParallel = TRUE)
-#modelRF &lt;- train(classe ~ ., data = training[,2:60], method = &quot;rf&quot;, trControl = controlRF)
-#predictedRF &lt;- predict(modelRF,newdata=testing)
-#cmRF &lt;- confusionMatrix(testing$classe,predictedRF)
-#print(modelRF$finalModel)</code></pre>
-<p>Random forest give us accuracy 98.9551478, expected out of sample error is 1.0448522 %</p>
+<pre class="r"><code>controlRF &lt;- trainControl(method = &quot;cv&quot;, number = 5, allowParallel = TRUE)
+modelRF &lt;- train(classe ~ ., data = training[,2:60], method = &quot;rf&quot;, trControl = controlRF)</code></pre>
+<pre><code>## Loading required package: randomForest
+## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre class="r"><code>predictedRF &lt;- predict(modelRF,newdata=testing)
+cmRF &lt;- confusionMatrix(testing$classe,predictedRF)
+print(modelRF$finalModel)</code></pre>
+<pre><code>## 
+## Call:
+##  randomForest(x = x, y = y, mtry = param$mtry) 
+##                Type of random forest: classification
+##                      Number of trees: 500
+## No. of variables tried at each split: 41
+## 
+##         OOB estimate of  error rate: 0.05%
+## Confusion matrix:
+##      A    B    C    D    E  class.error
+## A 4465    0    0    0    0 0.0000000000
+## B    1 3031    1    0    0 0.0006594131
+## C    0    3 2743    0    0 0.0010924982
+## D    0    0    1 2566    1 0.0007788162
+## E    0    0    0    1 2885 0.0003465003</code></pre>
+<p>We use 5-fold cross-validation that give us 80% training set and 20% testing set. Random forest show accuracy 0.9992355, expected out of sample error is 7.645259910^{-4}</p>
 </div>
 <div id="test-set-prediction" class="section level3">
 <h3>Test set prediction</h3>
@@ -111,9 +129,11 @@ cm &lt;- confusionMatrix(testing$classe,predicted)</code></pre>
 predictedSubmit</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
-<pre class="r"><code>#predictedSubmitRF &lt;- predict(modelRF,newdata=sportSubmitTest)
-#predictedSubmitRF</code></pre>
-<p>As we could see, both models give same results to us, what is not wonder taking into account huge accuracy of models.</p>
+<pre class="r"><code>predictedSubmitRF &lt;- predict(modelRF,newdata=sportSubmitTest)
+predictedSubmitRF</code></pre>
+<pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
+## Levels: A B C D E</code></pre>
+<p>As we could see, both models give same results to us, what is not wonder taking into account huge accuracy of models. Such accuracy mean that only rare corner-cases and outliers are hard to predict correctly.</p>
 </div>
 <div id="submisssion-results-export" class="section level3">
 <h3>Submisssion results export</h3>
@@ -125,7 +145,7 @@ predictedSubmit</code></pre>
     write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
   }
 }
-pml_write_files(predictedSubmit)</code></pre>
+pml_write_files(predictedSubmitRF)</code></pre>
 </div>
 
 
