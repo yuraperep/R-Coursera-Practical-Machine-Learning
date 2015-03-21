@@ -1,0 +1,84 @@
+---
+title: "Practical Machine Learning, Course Project"
+author: "Yuriy Perepelytsya"
+date: "21.03.2015"
+output: html_document
+---
+
+### General description
+
+The goal of your project is to predict the manner in which people did the exercise. This is the "classe" variable in the training set. 
+
+### Data preprocessing steps
+
+Let's load provided datasets into R : 
+```{r message=FALSE}
+library("caret")
+sportTrain = read.csv("pml-training.csv",na.strings=c("NA",""))
+sportSubmitTest= read.csv("pml-testing.csv",na.strings=c("NA",""))
+#dim=dim(sportTrain)
+#summary(sportTrain) 
+```
+We treat empty cells as NA values. As we could see from __*summary()*__ function, there are lot of columns that contains almost nothing except NA cells and totally dataset contain `r ncol(sportTrain)` columns.
+```{r}
+sportTrain = sportTrain[,colSums(is.na(sportTrain)) < 19000]
+```
+This line clean all useless columns, and afterwards we have only `r ncol(sportTrain)` columns.
+Let's split dataset on training and test parts: 
+```{r}
+indexesTrain <- createDataPartition(y=sportTrain$X,p=0.8, list=FALSE)
+training <- sportTrain[indexesTrain,]
+testing <- sportTrain[-indexesTrain,]
+```
+Now we are ready to build a model using training dataset.
+
+### Decision tree model 
+
+```{r}
+model <- train(classe ~ .,method="rpart",data=training[,2:60],tuneLength = 50)
+predicted <- predict(model,newdata=testing)
+cm <- confusionMatrix(testing$classe,predicted)
+```
+Decision tree quite small and accuracy is poor when we use default options. 
+We set __*tuneLength*__ param to bigger value to use the power of decision tree algorithm.
+Obtained accuracy is `r cm$overall[1]*100`% that is very good, so this model is good candidate for final prediction. Expected out of sample error is `r (1-cm$overall[1])*100` %
+
+### Random forest model 
+
+```{r}
+#controlRF <- trainControl(method = "cv", number = 5, allowParallel = TRUE)
+#modelRF <- train(classe ~ ., data = training[,2:60], method = "rf", trControl = controlRF)
+#predictedRF <- predict(modelRF,newdata=testing)
+#cmRF <- confusionMatrix(testing$classe,predictedRF)
+#print(modelRF$finalModel)
+```
+We use 5-fold crossvalidation that give us 80% training set and 20% testing set.
+Random forest show accuracy `r cm$overall[1]*100`, expected out of sample error is `r (1-cm$overall[1])*100` % 
+
+### Test set prediction 
+
+Let's use both models to find out class from test dataset:
+```{r}
+predictedSubmit <- predict(model,newdata=sportSubmitTest)
+predictedSubmit
+#predictedSubmitRF <- predict(modelRF,newdata=sportSubmitTest)
+#predictedSubmitRF
+```
+As we could see, both models give same results to us, what is not wonder taking into account huge accuracy of models. 
+
+### Submisssion results export 
+
+We could use function mentioned in __*Submission > Instruction*__ to automatically generate text files for each vector value: 
+
+```{r}
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+pml_write_files(predictedSubmit)
+```
+
+
